@@ -1,3 +1,4 @@
+//all logics and actions related to server are defined in this file
 import express from 'express';
 import {createServer} from 'http';
 import {Server} from 'socket.io';
@@ -25,6 +26,28 @@ io.on('connection', (socket) => {
     console.log(`a user connected to socket and socket id is: ${socket.id}`);
     socket.on('join-user', (username) => {
         console.log(`User joined: ${username} `);
+        allUsers[username] = {username, id: socket.id};
+        //informing all users that a new user has joined
+        io.emit("joined",allUsers);
+    });
+
+    socket.on('offer', ({from, to, offer}) => {
+        console.log(`Offer received from ${from} to ${to}`);
+        //ye server hai so ek client se aaya hua offer hume dusre client tak pahuchana hai
+        io.to(allUsers[to].id).emit("offer", {from, to, offer});
+    });
+
+    socket.on('answer', ({from, to, answer}) => {
+        console.log(`Answer received from ${from} to ${to}`);
+        //ab hum from ko bhej raha hai
+        io.to(allUsers[from].id).emit("answer", {from, to, answer});
+    });
+
+    socket.on('icecandidate', candidate => {
+        console.log(`Ice candidate received from peer`);
+        //broadcast to other peers. khud ko chod kar sabko bhejdo
+        socket.broadcast.emit("icecandidate", candidate);
+       
     });
 });
 
