@@ -43,11 +43,11 @@ io.on('connection', (socket) => {
         io.to(allUsers[from].id).emit("answer", {from, to, answer});
     });
 
-    socket.on("end-call", ({from, to}) => {
-        io.to(allUsers[to].id).emit("end-call", {from, to});
-    });
+    // socket.on("end-call", ({from, to}) => {
+    //     io.to(allUsers[to].id).emit("end-call", {from, to});
+    // });
 
-    socket .on("call-ended",caller=>{
+    socket.on("call-ended",caller=>{
           const [from,to] = caller;
           io.to(allUsers[from].id).emit("call-ended",caller);
           io.to(allUsers[to].id).emit("call-ended",caller);
@@ -59,6 +59,15 @@ io.on('connection', (socket) => {
         socket.broadcast.emit("icecandidate", candidate);
        
     });
+    
+    // Add this in the socket.on('connection', ...) block
+    socket.on('audio-status-change', ({from, to, isMuted}) => {
+        // Send to the other peer
+        if (allUsers[to]) {
+            io.to(allUsers[to].id).emit("remote-audio-status", {from, isMuted});
+        }
+    });
+    
 });
 
 server.listen(9000, () => {      //agar app.listen karte to it was only for express, bas express hi listen kar pata tha, but now we have to listen to http as well as socket connection

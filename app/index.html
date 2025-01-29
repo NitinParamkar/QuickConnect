@@ -27,11 +27,21 @@
             <div class="video-streams">
                 <div class="video-wrapper local-video">
                     <video id="localVideo" autoplay muted playsinline></video>
-                    <div class="video-label" id="local-user-label">You</div>
+                    <div class="video-controls">
+                        <div class="video-label" id="local-user-label">You</div>
+                        <button class="mute-btn" id="local-mute-btn">
+                            <img src="/images/unmute.png" alt="Mute" width="24">
+                        </button>
+                    </div>
                 </div>
                 <div class="video-wrapper remote-video">
                     <video id="remoteVideo" autoplay playsinline></video>
-                    <div class="video-label" id="remote-user-label"></div>
+                    <div class="video-controls">
+                        <div class="video-label" id="remote-user-label"></div>
+                        <button class="mute-btn" id="remote-mute-btn">
+                            <img src="/images/unmute.png" alt="Mute" width="24">
+                        </button>
+                    </div>
                 </div>
             </div>
             <div class="call-buttons">

@@ -8,9 +8,13 @@ const remoteVideo = document.getElementById('remoteVideo');
 const endCallBtn = document.getElementById('end-call-btn');
 const localUserLabel = document.getElementById('local-user-label');
 const remoteUserLabel = document.getElementById('remote-user-label');
+const localMuteBtn = document.getElementById('local-mute-btn');
+const remoteMuteBtn = document.getElementById('remote-mute-btn');
+let isLocalMuted = false;
 let localStream;
 let caller = [];
 let isJoined = false;
+let remoteUserMuted = false;
 
 //Single Method for peer connection
 //khud ka public ip jannane ke liye below code hai
@@ -63,6 +67,35 @@ const PeerConnection =(function(){
     }
 })();
 
+
+const toggleLocalAudio = () => {
+    if (localStream) {
+        const audioTrack = localStream.getAudioTracks()[0];
+        if (audioTrack) {
+            isLocalMuted = !isLocalMuted;
+            audioTrack.enabled = !isLocalMuted;
+            
+            // Update button image
+            const muteImg = localMuteBtn.querySelector('img');
+            muteImg.src = isLocalMuted ? '/images/mute.png' : '/images/unmute.png';
+            muteImg.alt = isLocalMuted ? 'Unmute' : 'Mute';
+
+            // Notify the remote peer about mute status change
+            if (caller.length === 2) {
+                const [from, to] = caller;
+                const remotePeer = from === username.value ? to : from;
+                socket.emit('audio-status-change', {
+                    from: username.value,
+                    to: remotePeer,
+                    isMuted: isLocalMuted
+                });
+            }
+        }
+    }
+};
+
+localMuteBtn.addEventListener('click', toggleLocalAudio);
+
 //handle browser events
 createUserBtn.addEventListener('click', (e) => {
     const nameInput = username.value.trim();
@@ -83,6 +116,18 @@ createUserBtn.addEventListener('click', (e) => {
 
 endCallBtn.addEventListener("click",(e)=>{
     socket.emit("call-ended",caller);
+});
+
+socket.on('remote-audio-status', ({from, isMuted}) => {
+    remoteUserMuted = isMuted;
+    // Update remote mute button UI
+    const muteImg = remoteMuteBtn.querySelector('img');
+    muteImg.src = isMuted ? '/images/mute.png' : '/images/unmute.png';
+    muteImg.alt = isMuted ? 'Muted' : 'Unmuted';
+    
+    // Optionally show a notification or visual indicator
+    const remoteLabel = document.getElementById('remote-user-label');
+    remoteLabel.textContent = `${from} ${isMuted ? '(Muted)' : ''}`;
 });
 
 //handle socket events
@@ -118,15 +163,22 @@ socket.on('joined', allusers => {
 createUsersHtml();
 });
 
-socket.on('offer', async({from, to , offer}) => {
-    const pc= PeerConnection.getInstance();
-    //set remote description
+socket.on('offer', async({from, to, offer}) => {
+    const pc = PeerConnection.getInstance();
     await pc.setRemoteDescription(offer);
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
     socket.emit("answer", {from, to, answer: pc.localDescription});
-    caller=[from,to];
+    caller = [from, to];
     remoteUserLabel.textContent = from;
+    endCallBtn.classList.remove('d-none');
+    remoteMuteBtn.style.display = 'flex';
+    
+    // Reset remote mute state for new call
+    remoteUserMuted = false;
+    const muteImg = remoteMuteBtn.querySelector('img');
+    muteImg.src = '/images/unmute.png';
+    muteImg.alt = 'Unmute';
 });
 
 
@@ -134,9 +186,10 @@ socket.on('answer', async({from, to, answer}) => {
     const pc = PeerConnection.getInstance();
     await pc.setRemoteDescription(answer);
     //show end call button
-    endCallBtn.style.display = "block";
+    endCallBtn.classList.remove('d-none');
     socket.emit("end-call", {from, to});
     caller=[from , to];
+    remoteMuteBtn.style.display = 'flex';
 });
 
 socket.on('icecandidate', async(candidate) => {
@@ -144,11 +197,9 @@ socket.on('icecandidate', async(candidate) => {
     await pc.addIceCandidate(new RTCIceCandidate(candidate));
 });
 
-socket.on('end-call', ({from, to}) => {
-    endCallBtn.style.display = "block";
-});
 
-socket.on("call-ended",(caller)=>{
+
+socket.on("call-ended", (caller) => {
     endCall();
 });
 
@@ -164,34 +215,59 @@ const startCall = async(user) => {
         return;
     }
     console.log(`Call started to ${user}`);
-    // socket.emit("start-call", {from: username.value, to});
     const pc = PeerConnection.getInstance();
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
     socket.emit("offer", {from: username.value, to: user, offer: pc.localDescription});
     remoteUserLabel.textContent = user;
+    endCallBtn.classList.remove('d-none');
+    
+    // Reset remote mute state for new call
+    remoteUserMuted = false;
+    const muteImg = remoteMuteBtn.querySelector('img');
+    muteImg.src = '/images/unmute.png';
+    muteImg.alt = 'Unmute';
 };
 
 const endCall = () => {
     PeerConnection.clearInstance();
-    endCallBtn.style.display = 'none';
+    endCallBtn.classList.add('d-none');
+    remoteMuteBtn.style.display = 'none';
+
+    if (isLocalMuted) {
+        toggleLocalAudio();
+    }
+    
+    // Reset remote mute state
+    remoteUserMuted = false;
+    const muteImg = remoteMuteBtn.querySelector('img');
+    muteImg.src = '/images/unmute.png';
+    muteImg.alt = 'Unmute';
+
     // Clear the remote video stream
     if(remoteVideo.srcObject) {
         remoteVideo.srcObject.getTracks().forEach(track => track.stop());
         remoteVideo.srcObject = null;
     }
     remoteUserLabel.textContent = '';
-}
+};
 
 //initialize app
 const startMyVideo = async() => {
-    try{
+    try {
         const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
         localStream = stream;
         localVideo.srcObject = stream;
-    }catch(err){
+        // Ensure audio is enabled by default
+        const audioTrack = localStream.getAudioTracks()[0];
+        if (audioTrack) {
+            audioTrack.enabled = true;
+        }
+    } catch(err) {
         console.error("Error getting user media: ", err);
     }   
-}
+};
+
+remoteMuteBtn.style.display = 'none';
 
 startMyVideo();
