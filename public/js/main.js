@@ -5,7 +5,9 @@ const allusersHtml = document.getElementById('allusers');
 const socket = io();
 const localVideo = document.getElementById('localVideo');
 const remoteVideo = document.getElementById('remoteVideo');
+const endCallBtn = document.getElementById('end-call-btn');
 let localStream;
+let caller = [];
 
 //Single Method for peer connection
 //khud ka public ip jannane ke liye below code hai
@@ -41,11 +43,19 @@ const PeerConnection =(function(){
     }
 
     return {
-        getInstance: () =>{
-            if(!peerConnection){
+        getInstance: () => {
+            // Create new instance if none exists or if current one is closed
+            if(!peerConnection || peerConnection.connectionState === 'closed') {
                 peerConnection = createPeerConnection();
             }
             return peerConnection;
+        },
+        // Add method to clear the instance
+        clearInstance: () => {
+            if(peerConnection) {
+                peerConnection.close();
+                peerConnection = null;
+            }
         }
     }
 })();
@@ -57,6 +67,10 @@ createUserBtn.addEventListener('click', (e) => {
         socket.emit("join-user", username.value);
         usernameContainer.style.display = "none";
     }
+});
+
+endCallBtn.addEventListener("click",(e)=>{
+    socket.emit("call-ended",caller);
 });
 
 //handle socket events
@@ -91,17 +105,30 @@ socket.on('offer', async({from, to , offer}) => {
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
     socket.emit("answer", {from, to, answer: pc.localDescription});
+    caller=[from,to];
 });
 
 
 socket.on('answer', async({from, to, answer}) => {
     const pc = PeerConnection.getInstance();
     await pc.setRemoteDescription(answer);
+    //show end call button
+    endCallBtn.style.display = "block";
+    socket.emit("end-call", {from, to});
+    caller=[from , to];
 });
 
 socket.on('icecandidate', async(candidate) => {
     const pc = PeerConnection.getInstance();
     await pc.addIceCandidate(new RTCIceCandidate(candidate));
+});
+
+socket.on('end-call', ({from, to}) => {
+    endCallBtn.style.display = "block";
+});
+
+socket.on("call-ended",(caller)=>{
+    endCall();
 });
 
 //start call method
@@ -119,6 +146,16 @@ const startCall = async(user) => {
     socket.emit("offer", {from: username.value, to: user, offer: pc.localDescription});
      
 };
+
+const endCall = () => {
+    PeerConnection.clearInstance();
+    endCallBtn.style.display = 'none';
+    // Clear the remote video stream
+    if(remoteVideo.srcObject) {
+        remoteVideo.srcObject.getTracks().forEach(track => track.stop());
+        remoteVideo.srcObject = null;
+    }
+}
 
 //initialize app
 const startMyVideo = async() => {
