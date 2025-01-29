@@ -6,8 +6,11 @@ const socket = io();
 const localVideo = document.getElementById('localVideo');
 const remoteVideo = document.getElementById('remoteVideo');
 const endCallBtn = document.getElementById('end-call-btn');
+const localUserLabel = document.getElementById('local-user-label');
+const remoteUserLabel = document.getElementById('remote-user-label');
 let localStream;
 let caller = [];
+let isJoined = false;
 
 //Single Method for peer connection
 //khud ka public ip jannane ke liye below code hai
@@ -62,11 +65,20 @@ const PeerConnection =(function(){
 
 //handle browser events
 createUserBtn.addEventListener('click', (e) => {
-    if(username.value !== ""){
-        const usernameContainer = document.querySelector('.username-input');
-        socket.emit("join-user", username.value);
-        usernameContainer.style.display = "none";
+    const nameInput = username.value.trim();
+    if(nameInput === "") {
+        alert("Please enter your name to join");
+        return;
     }
+
+    const usernameContainer = document.querySelector('.username-input');
+    socket.emit("join-user", nameInput);
+    usernameContainer.style.display = "none";
+    localUserLabel.textContent = `${nameInput} (You)`;
+    isJoined = true; // Set join status to true
+    
+    // Refresh the users list now that we're joined
+    socket.emit("request-users-list");
 });
 
 endCallBtn.addEventListener("click",(e)=>{
@@ -77,6 +89,14 @@ endCallBtn.addEventListener("click",(e)=>{
 socket.on('joined', allusers => {
     const createUsersHtml = () => {
         allusersHtml.innerHTML = "";
+        if (!isJoined) {
+            // If user hasn't joined, show message
+            const div = document.createElement('div');
+            div.className = 'not-joined-message';
+            div.textContent = 'Please enter your name and join to see other users';
+            allusersHtml.appendChild(div);
+            return;
+        }
         for(const user in allusers){
           const li = document.createElement('li');
           li.textContent = `${user} ${user === username.value ? '(You)' : ''}`;
@@ -106,6 +126,7 @@ socket.on('offer', async({from, to , offer}) => {
     await pc.setLocalDescription(answer);
     socket.emit("answer", {from, to, answer: pc.localDescription});
     caller=[from,to];
+    remoteUserLabel.textContent = from;
 });
 
 
@@ -138,13 +159,17 @@ socket.on("call-ended",(caller)=>{
 //once they get to know their public keys (ICE Candidates) they share it with each other
 //then they can start the call
 const startCall = async(user) => {
+    if (!isJoined) {
+        alert("Please join the network before making calls");
+        return;
+    }
     console.log(`Call started to ${user}`);
     // socket.emit("start-call", {from: username.value, to});
     const pc = PeerConnection.getInstance();
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
     socket.emit("offer", {from: username.value, to: user, offer: pc.localDescription});
-     
+    remoteUserLabel.textContent = user;
 };
 
 const endCall = () => {
@@ -155,6 +180,7 @@ const endCall = () => {
         remoteVideo.srcObject.getTracks().forEach(track => track.stop());
         remoteVideo.srcObject = null;
     }
+    remoteUserLabel.textContent = '';
 }
 
 //initialize app
