@@ -10,11 +10,15 @@ const localUserLabel = document.getElementById('local-user-label');
 const remoteUserLabel = document.getElementById('remote-user-label');
 const localMuteBtn = document.getElementById('local-mute-btn');
 const remoteMuteBtn = document.getElementById('remote-mute-btn');
+const localVideoBtn = document.getElementById('local-video-btn');
+const remoteVideoBtn = document.getElementById('remote-video-btn');
 let isLocalMuted = false;
+let isLocalVideoOff = false;
 let localStream;
 let caller = [];
 let isJoined = false;
 let remoteUserMuted = false;
+let remoteVideoOff = false;
 
 //Single Method for peer connection
 //khud ka public ip jannane ke liye below code hai
@@ -94,7 +98,34 @@ const toggleLocalAudio = () => {
     }
 };
 
+const toggleLocalVideo = () => {
+    if (localStream) {
+        const videoTrack = localStream.getVideoTracks()[0];
+        if (videoTrack) {
+            isLocalVideoOff = !isLocalVideoOff;
+            videoTrack.enabled = !isLocalVideoOff;
+            
+            // Update button image
+            const videoImg = localVideoBtn.querySelector('img');
+            videoImg.src = isLocalVideoOff ? '/images/video-off.png' : '/images/video-on.png';
+            videoImg.alt = isLocalVideoOff ? 'Turn Video On' : 'Turn Video Off';
+
+            // Notify the remote peer about video status change
+            if (caller.length === 2) {
+                const [from, to] = caller;
+                const remotePeer = from === username.value ? to : from;
+                socket.emit('video-status-change', {
+                    from: username.value,
+                    to: remotePeer,
+                    isVideoOff: isLocalVideoOff
+                });
+            }
+        }
+    }
+};
+
 localMuteBtn.addEventListener('click', toggleLocalAudio);
+localVideoBtn.addEventListener('click', toggleLocalVideo);
 
 //handle browser events
 createUserBtn.addEventListener('click', (e) => {
@@ -128,6 +159,13 @@ socket.on('remote-audio-status', ({from, isMuted}) => {
     // Optionally show a notification or visual indicator
     const remoteLabel = document.getElementById('remote-user-label');
     remoteLabel.textContent = `${from} ${isMuted ? '(Muted)' : ''}`;
+});
+
+socket.on('video-status-change', ({from, isVideoOff}) => {
+    remoteVideoOff = isVideoOff;
+    const videoImg = remoteVideoBtn.querySelector('img');
+    videoImg.src = isVideoOff ? '/images/video-off.png' : '/images/video-on.png';
+    videoImg.alt = isVideoOff ? 'Video Off' : 'Video On';
 });
 
 //handle socket events
@@ -173,6 +211,7 @@ socket.on('offer', async({from, to, offer}) => {
     remoteUserLabel.textContent = from;
     endCallBtn.classList.remove('d-none');
     remoteMuteBtn.style.display = 'flex';
+    remoteVideoBtn.style.display = 'flex';
     
     // Reset remote mute state for new call
     remoteUserMuted = false;
@@ -180,7 +219,6 @@ socket.on('offer', async({from, to, offer}) => {
     muteImg.src = '/images/unmute.png';
     muteImg.alt = 'Unmute';
 });
-
 
 socket.on('answer', async({from, to, answer}) => {
     const pc = PeerConnection.getInstance();
@@ -190,6 +228,7 @@ socket.on('answer', async({from, to, answer}) => {
     socket.emit("end-call", {from, to});
     caller=[from , to];
     remoteMuteBtn.style.display = 'flex';
+    remoteVideoBtn.style.display = 'flex';
 });
 
 socket.on('icecandidate', async(candidate) => {
@@ -221,6 +260,8 @@ const startCall = async(user) => {
     socket.emit("offer", {from: username.value, to: user, offer: pc.localDescription});
     remoteUserLabel.textContent = user;
     endCallBtn.classList.remove('d-none');
+    remoteMuteBtn.style.display = 'flex';
+    remoteVideoBtn.style.display = 'flex';
     
     // Reset remote mute state for new call
     remoteUserMuted = false;
@@ -233,6 +274,7 @@ const endCall = () => {
     PeerConnection.clearInstance();
     endCallBtn.classList.add('d-none');
     remoteMuteBtn.style.display = 'none';
+    remoteVideoBtn.style.display = 'none';
 
     if (isLocalMuted) {
         toggleLocalAudio();
@@ -269,5 +311,6 @@ const startMyVideo = async() => {
 };
 
 remoteMuteBtn.style.display = 'none';
+remoteVideoBtn.style.display = 'none';
 
 startMyVideo();

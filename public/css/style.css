@@ -214,6 +214,28 @@ body {
     padding: 8px;
 }
 
+.video-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    margin-right: 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.video-btn:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.video-btn img {
+    width: 24px;
+    height: 24px;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;

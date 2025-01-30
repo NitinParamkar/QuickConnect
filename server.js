@@ -67,6 +67,13 @@ io.on('connection', (socket) => {
             io.to(allUsers[to].id).emit("remote-audio-status", {from, isMuted});
         }
     });
+
+    socket.on('video-status-change', ({from, to, isVideoOff}) => {
+        const toSocket = allUsers[to];
+        if (toSocket) {
+            io.to(toSocket.id).emit('video-status-change', {from, isVideoOff});
+        }
+    });
     
 });
 
