@@ -201,6 +201,33 @@ body {
     z-index: 10;
 }
 
+.video-controls .video-label {
+    margin-right: auto; /* Pushes the label to the left */
+}
+
+.video-controls .video-btn,
+.video-controls .mute-btn {
+    background: rgba(0, 0, 0, 0.7);
+    border: none;
+    /* padding: 6px; */
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.video-controls .video-btn {
+    margin-left: 4px; /* Very small gap between buttons */
+}
+
+.video-controls button img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: block;
+}
+
 .mute-btn {
     background: rgba(0, 0, 0, 0.7);
     border: none;
@@ -211,16 +238,18 @@ body {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    padding: 8px;
+    /* padding: 8px; */
 }
 
 .video-btn {
     background: none;
     border: none;
     cursor: pointer;
-    padding: 8px;
+    /* padding: 8px; */
     margin-right: 8px;
     border-radius: 50%;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -232,8 +261,9 @@ body {
 }
 
 .video-btn img {
-    width: 24px;
-    height: 24px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
 }
 
 @keyframes fadeIn {
