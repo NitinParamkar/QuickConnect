@@ -207,9 +207,9 @@ body {
 
 .video-controls .video-btn,
 .video-controls .mute-btn {
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(255, 255, 255, 0.7);
     border: none;
-    /* padding: 6px; */
+    padding: 6px;
     border-radius: 50%;
     cursor: pointer;
     display: flex;
@@ -238,14 +238,14 @@ body {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    /* padding: 8px; */
+    padding: 8px;
 }
 
 .video-btn {
     background: none;
     border: none;
     cursor: pointer;
-    /* padding: 8px; */
+    padding: 8px;
     margin-right: 8px;
     border-radius: 50%;
     width: 40px;
@@ -256,9 +256,9 @@ body {
     background-color: rgba(0, 0, 0, 0.5);
 }
 
-.video-btn:hover {
+/* .video-btn:hover {
     background-color: rgba(0, 0, 0, 0.7);
-}
+} */
 
 .video-btn img {
     width: 40px;
