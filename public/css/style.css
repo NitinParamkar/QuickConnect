@@ -154,11 +154,11 @@ body {
 }
 
 .call-disconnect {
-    background: #dc3545;
+    /* background: #dc3545; */
     border: none;
     border-radius: 50%;
-    width: 60px;
-    height: 60px;
+    width: 45px;
+    height: 45px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -198,7 +198,8 @@ body {
 
 .video-controls .video-btn,
 .video-controls .mute-btn {
-    background: rgba(255, 255, 255, 0.7);
+    /* background: rgba(65, 230, 230, 0.7); */
+    background: rgba(146, 134, 223, 0.7);
     border: none;
     padding: 6px;
     border-radius: 50%;
@@ -213,8 +214,8 @@ body {
 }
 
 .video-controls button img {
-    width: 40px;
-    height: 40px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     display: block;
 }
