@@ -190,8 +190,8 @@ socket.on('joined', allusers => {
               startCall(user);
           });
           const img = document.createElement('img');
-          img.setAttribute("src", "/images/phone.png");
-          img.setAttribute("width",20);
+          img.setAttribute("src", "/images/phone-call.png");
+          img.setAttribute("width",35);
           button.appendChild(img);
           li.appendChild(button);
         }

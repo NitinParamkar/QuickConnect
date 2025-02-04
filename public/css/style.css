@@ -59,17 +59,8 @@ body {
 }
 
 .call-btn {
-    background: #4CAF50;
-    border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
+    background: #f8f9fa; 
+    border: none;  
 }
 
 /* Video call container */
