@@ -83,15 +83,21 @@ document.addEventListener('DOMContentLoaded', () => {
     overlay.className = 'menu-overlay';
     body.appendChild(overlay);
 
-    function toggleMenu() {
-        callerList.classList.toggle('active');
-        overlay.classList.toggle('active');
-        menuToggle.classList.toggle('hide');
+    function showMenu() {
+        callerList.classList.add('active');
+        overlay.classList.add('active');
+        menuToggle.classList.add('hide');
     }
 
-    menuToggle.addEventListener('click', toggleMenu);
-    closeMenu.addEventListener('click', toggleMenu);
-    overlay.addEventListener('click', toggleMenu);
+    function hideMenu() {
+        callerList.classList.remove('active');
+        overlay.classList.remove('active');
+        menuToggle.classList.remove('hide');
+    }
+
+    menuToggle.addEventListener('click', showMenu);
+    closeMenu.addEventListener('click', hideMenu);
+    overlay.addEventListener('click', hideMenu);
 });
 
 const toggleLocalAudio = () => {
