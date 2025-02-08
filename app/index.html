@@ -13,8 +13,16 @@
 </head>
 <body>
     <main class="main-container">
+        <button id="menu-toggle" class="hamburger-menu" aria-label="Toggle Contacts">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
         <aside class="caller-list-wrapper">
-            <h1 class="caller-list-heading">Contacts</h1>
+            <div class="caller-list-header">
+                <h1 class="caller-list-heading">Contacts</h1>
+                <button class="close-menu" aria-label="Close menu">×</button>
+            </div>
             <ul id="allusers" class="caller-list">
                 <!-- Users will be added here dynamically -->
             </ul>

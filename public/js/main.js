@@ -71,6 +71,28 @@ const PeerConnection =(function(){
     }
 })();
 
+// Add menu toggle functionality
+document.addEventListener('DOMContentLoaded', () => {
+    const menuToggle = document.getElementById('menu-toggle');
+    const closeMenu = document.querySelector('.close-menu');
+    const callerList = document.querySelector('.caller-list-wrapper');
+    const body = document.body;
+
+    // Create overlay element
+    const overlay = document.createElement('div');
+    overlay.className = 'menu-overlay';
+    body.appendChild(overlay);
+
+    function toggleMenu() {
+        callerList.classList.toggle('active');
+        overlay.classList.toggle('active');
+        menuToggle.classList.toggle('hide');
+    }
+
+    menuToggle.addEventListener('click', toggleMenu);
+    closeMenu.addEventListener('click', toggleMenu);
+    overlay.addEventListener('click', toggleMenu);
+});
 
 const toggleLocalAudio = () => {
     if (localStream) {
