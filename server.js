@@ -2,6 +2,7 @@
 import express from 'express';
 import {createServer} from 'http';
 import {Server} from 'socket.io';
+const PORT = process.env.PORT || 9000;
 
 //to identify the file location
 import { fileURLToPath } from 'url';
@@ -18,7 +19,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));   //import.meta.url i
 app.use(express.static("public"));
 
 app.get('/', (req, res) => {
-    res.sendFile(join(__dirname, '/app/index.html'));
+    res.sendFile(join(__dirname, 'public/app/index.html'));
 });        
 
 // handle socket connection...   socket.on to recieve messages and socket.emit to send messages
@@ -72,6 +73,6 @@ io.on('connection', (socket) => {
     
 });
 
-server.listen(9000, () => {      //agar app.listen karte to it was only for express, bas express hi listen kar pata tha, but now we have to listen to http as well as socket connection
-  console.log('Server is running on port 9000');
+server.listen(PORT, () => {      //agar app.listen karte to it was only for express, bas express hi listen kar pata tha, but now we have to listen to http as well as socket connection
+  console.log(`Server is running on port ${PORT}`);
 });
