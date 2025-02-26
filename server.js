@@ -70,6 +70,30 @@ io.on('connection', (socket) => {
             io.to(toSocket.id).emit('video-status-change', {from, isVideoOff});
         }
     });
+
+    socket.on('disconnect', () => {
+        console.log(`User disconnected: ${socket.id}`);
+        
+        // Find and remove the disconnected user from allUsers
+        let disconnectedUser = null;
+        for (const username in allUsers) {
+            if (allUsers[username].id === socket.id) {
+                disconnectedUser = username;
+                break;
+            }
+        }
+
+        if (disconnectedUser) {
+            console.log(`Removing user: ${disconnectedUser}`);
+            delete allUsers[disconnectedUser];
+            
+            // Inform all remaining users that someone has left
+            io.emit("user-left", {
+                username: disconnectedUser,
+                remainingUsers: allUsers
+            });
+        }
+    });
     
 });
 

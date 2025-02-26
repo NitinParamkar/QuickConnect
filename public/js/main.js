@@ -198,35 +198,7 @@ socket.on('video-status-change', ({from, isVideoOff}) => {
 
 //handle socket events
 socket.on('joined', allusers => {
-    const createUsersHtml = () => {
-        allusersHtml.innerHTML = "";
-        if (!isJoined) {
-            // If user hasn't joined, show message
-            const div = document.createElement('div');
-            div.className = 'not-joined-message';
-            div.textContent = 'Please enter your name and join to see other users';
-            allusersHtml.appendChild(div);
-            return;
-        }
-        for(const user in allusers){
-          const li = document.createElement('li');
-          li.textContent = `${user} ${user === username.value ? '(You)' : ''}`;
-          if(user !== username.value){
-          const button = document.createElement('button');
-          button.classList.add("call-btn");
-          button.addEventListener('click', (e) => {
-              startCall(user);
-          });
-          const img = document.createElement('img');
-          img.setAttribute("src", "/images/phone-call.png");
-          img.setAttribute("width",35);
-          button.appendChild(img);
-          li.appendChild(button);
-        }
-        allusersHtml.appendChild(li);
-     }
- }
-createUsersHtml();
+    createUsersHtml(allusers);
 });
 
 socket.on('offer', async({from, to, offer}) => {
@@ -263,6 +235,50 @@ socket.on('icecandidate', async(candidate) => {
     const pc = PeerConnection.getInstance();
     await pc.addIceCandidate(new RTCIceCandidate(candidate));
 });
+
+socket.on('user-left', ({username, remainingUsers}) => {
+    console.log(`${username} has left the chat`);
+    
+    // Update the global users list
+    // Refresh the UI contacts list
+    createUsersHtml(remainingUsers);
+});
+
+// Modify the createUsersHtml function to accept a users parameter
+const createUsersHtml = (users = null) => {
+    allusersHtml.innerHTML = "";
+    
+    // Use provided users or default to global allUsers
+    const usersToDisplay = users || allUsers;
+    
+    if (!isJoined) {
+        // If user hasn't joined, show message
+        const div = document.createElement('div');
+        div.className = 'not-joined-message';
+        div.textContent = 'Please enter your name and join to see other users';
+        allusersHtml.appendChild(div);
+        return;
+    }
+    
+    for(const user in usersToDisplay) {
+        const li = document.createElement('li');
+        li.textContent = `${user} ${user === username.value ? '(You)' : ''}`;
+        if(user !== username.value) {
+            const button = document.createElement('button');
+            button.classList.add("call-btn");
+            button.addEventListener('click', (e) => {
+                startCall(user);
+            });
+            const img = document.createElement('img');
+            img.setAttribute("src", "/images/phone-call.png");
+            img.setAttribute("width", 35);
+            button.appendChild(img);
+            li.appendChild(button);
+        }
+        allusersHtml.appendChild(li);
+    }
+};
+
 
 
 
